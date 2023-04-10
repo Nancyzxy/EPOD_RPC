@@ -1,6 +1,6 @@
 package Detector;
 
-import DataStructure.Vector;
+import RPC.Vector;
 import Framework.Device;
 import java.util.*;
 

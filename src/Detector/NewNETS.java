@@ -1,6 +1,6 @@
 package Detector;
 
-import DataStructure.Vector;
+import RPC.Vector;
 import DataStructure.Cell;
 import DataStructure.Tuple;
 import Framework.Device;

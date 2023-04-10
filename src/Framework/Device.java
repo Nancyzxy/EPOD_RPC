@@ -4,7 +4,7 @@ import Detector.Detector;
 import Detector.MCOD;
 import Detector.NewNETS;
 import RPC.RPCFrame;
-import DataStructure.Vector;
+import RPC.Vector;
 import utils.Constants;
 import utils.DataGenerator;
 

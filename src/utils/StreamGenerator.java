@@ -1,6 +1,6 @@
 package utils;
 
-import DataStructure.Vector;
+import RPC.Vector;
 import DataStructure.Tuple;
 import java.io.BufferedReader;
 import java.io.FileReader;

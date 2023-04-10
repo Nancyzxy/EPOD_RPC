@@ -1,6 +1,6 @@
 package Framework;
 
-import DataStructure.Vector;
+import RPC.Vector;
 import utils.Constants;
 import java.io.IOException;
 import java.util.ArrayList;

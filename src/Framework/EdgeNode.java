@@ -1,7 +1,7 @@
 package Framework;
 
 import Handler.*;
-import RPC.RPCFrame;
+import RPC.*;
 import utils.Constants;
 
 import java.util.*;

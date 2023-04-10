@@ -4,7 +4,7 @@ import DataStructure.MCO;
 
 import java.util.*;
 
-import DataStructure.Vector;
+import RPC.Vector;
 import Framework.Device;
 import mtree.utils.MTreeClass;
 import utils.Constants;
