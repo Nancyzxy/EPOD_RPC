@@ -11,25 +11,25 @@ import java.util.*;
 @SuppressWarnings("unchecked")
 public class NewNETS extends Detector {
     public boolean subDimFlag;
-    public double neighCellIdxDist;//×Ó¿Õ¼äcellÖ®¼äÊÇ·ñÊÇÁÚ¾ÓcellµÄ¾àÀëãÐÖµ
+    public double neighCellIdxDist;//ï¿½Ó¿Õ¼ï¿½cellÖ®ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½Ú¾ï¿½cellï¿½Ä¾ï¿½ï¿½ï¿½ï¿½ï¿½Öµ
     public double neighCellFullDimIdxDist;
     public double[] maxValues;
     public double[] minValues;
-    public int random; // random ±íÊ¾Î¬¶ÈÊÇ·ñÊÇËæ»úÑ¡ÔñµÄ
+    public int random; // random ï¿½ï¿½Ê¾Î¬ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½
     private List<Integer> priorityList;
     public double[] dimLength;
     public double[] subDimLength;
 
     public HashMap<Integer, ArrayList<Short>> idxDecoder;
     public HashMap<ArrayList<Short>, Integer> idxEncoder;
-    public HashMap<Integer, Integer> slideDelta; //×Ó¿Õ¼äcell id -> ¸Ä±äµÄµãÊý
+    public HashMap<Integer, Integer> slideDelta; //ï¿½Ó¿Õ¼ï¿½cell id -> ï¿½Ä±ï¿½Äµï¿½ï¿½ï¿½
     public HashSet<Tuple> outliers;
-    public HashMap<Integer, Integer> windowCnt; //×Ó¿Õ¼äcell id -> cellµãÊý
+    public HashMap<Integer, Integer> windowCnt; //ï¿½Ó¿Õ¼ï¿½cell id -> cellï¿½ï¿½ï¿½ï¿½
     public HashMap<Integer, Integer> fullDimCellWindowCnt;
-    public HashMap<Integer, Cell> slideIn; //´æµÄÊÇÃ¿´Î½øÀ´µÄ×Ó¿Õ¼äµÄcell¼°¾ßÌåµÄµã
+    public HashMap<Integer, Cell> slideIn; //ï¿½ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½Î½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¿Õ¼ï¿½ï¿½cellï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Äµï¿½
     public HashMap<Integer, Cell> slideOut;
     public LinkedList<HashMap<Integer, Cell>> slides;
-    public HashMap<Integer, Integer> fullDimCellSlideInCnt; //´æµÄÊÇÃ¿´Î½øÀ´µÄÈ«Î¬¿Õ¼äµÄcellID¼°ÊýÁ¿
+    public HashMap<Integer, Integer> fullDimCellSlideInCnt; //ï¿½ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½Î½ï¿½ï¿½ï¿½ï¿½ï¿½È«Î¬ï¿½Õ¼ï¿½ï¿½cellIDï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     public HashMap<Integer, Integer> fullDimCellSlideOutCnt;
     public Queue<HashMap<Integer, Integer>> fullDimCellSlidesCnt;
     public HashSet<Integer> influencedCells;
@@ -117,11 +117,11 @@ public class NewNETS extends Detector {
     public ArrayList<Tuple> preprocessData(List<Vector> data) {
         ArrayList<Tuple> newSlide = new ArrayList<Tuple>();
         for (Vector datum : data) {
-            double[] value = new double[data.get(0).values.length];
+            double[] value = new double[data.get(0).values.size()];
             int j = 0;
-            //Î¬¶ÈÅÅÐò
+            //Î¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             for (int i : priorityList) {
-                value[j] = datum.values[i];
+                value[j] = datum.values.get(i);
                 j++;
             }
             Tuple tuple = new Tuple(datum.arrivalTime, Constants.currentSlideID, value);
@@ -188,8 +188,8 @@ public class NewNETS extends Detector {
     }
 
     /**
-     * @param slideTuples ÐÂ½øÀ´µÄslide
-     * @description ¼ÆËã×Ó¿Õ¼äºÍÈ«¿Õ¼äµÄ×ø±ê£¬²¢ÇÒ¸üÐÂslideIn£¬fullDimCellSlideInCnt£¬slides£¬fullDimCellSlideCnt
+     * @param slideTuples ï¿½Â½ï¿½ï¿½ï¿½ï¿½ï¿½slide
+     * @description ï¿½ï¿½ï¿½ï¿½ï¿½Ó¿Õ¼ï¿½ï¿½È«ï¿½Õ¼ï¿½ï¿½ï¿½ï¿½ï¿½ê£¬ï¿½ï¿½ï¿½Ò¸ï¿½ï¿½ï¿½slideInï¿½ï¿½fullDimCellSlideInCntï¿½ï¿½slidesï¿½ï¿½fullDimCellSlideCnt
      */
     public void indexingSlide(ArrayList<Tuple> slideTuples) {
         slideIn = new HashMap<>();
@@ -247,9 +247,9 @@ public class NewNETS extends Detector {
     }
 
     /**
-     * @param slideTuples ÐÂ½øÀ´µÄslide
-     * @param itr         µ±Ç°µÄslideId
-     * @description ¼ÆËã×Ó¿Õ¼äµÄnet change, Ö¸ÎÆÔÚ´Ë¸üÐÂ£¡
+     * @param slideTuples ï¿½Â½ï¿½ï¿½ï¿½ï¿½ï¿½slide
+     * @param itr         ï¿½ï¿½Ç°ï¿½ï¿½slideId
+     * @description ï¿½ï¿½ï¿½ï¿½ï¿½Ó¿Õ¼ï¿½ï¿½net change, Ö¸ï¿½ï¿½ï¿½Ú´Ë¸ï¿½ï¿½Â£ï¿½
      */
     public void calcNetChange(ArrayList<Tuple> slideTuples, int itr) {
         this.indexingSlide(slideTuples);
@@ -260,13 +260,13 @@ public class NewNETS extends Detector {
             slideOut = slides.poll();
             fullDimCellSlideOutCnt = fullDimCellSlidesCnt.poll();
         }
-        slideDelta = new HashMap<>(); //×Ó¿Õ¼äµÄcellID -> Change Number
+        slideDelta = new HashMap<>(); //ï¿½Ó¿Õ¼ï¿½ï¿½cellID -> Change Number
 
         /* Update sub-dimension window */
         for (Integer key : slideIn.keySet()) {
             if (!windowCnt.containsKey(key)) {
                 windowCnt.put(key, 0);
-                idxDecoder.put(key, slideIn.get(key).cellIdx);// TODO£ºÎÞ·¨Àí½â
+                idxDecoder.put(key, slideIn.get(key).cellIdx);// TODOï¿½ï¿½ï¿½Þ·ï¿½ï¿½ï¿½ï¿½
             }
             windowCnt.put(key, windowCnt.get(key) + slideIn.get(key).getNumTuples());
             slideDelta.put(key, slideIn.get(key).getNumTuples());
@@ -291,7 +291,7 @@ public class NewNETS extends Detector {
                 fullDimCellWindowCnt.put(key, 0);
             }
             fullDimCellWindowCnt.put(key, fullDimCellWindowCnt.get(key) + fullDimCellSlideInCnt.get(key));
-            //¸üÐÂÖ¸ÎÆ
+            //ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½
             if (!device.fullCellDelta.containsKey(idxDecoder.get(key))) {
                 device.fullCellDelta.put(idxDecoder.get(key), 0);
             }
@@ -301,7 +301,7 @@ public class NewNETS extends Detector {
 
         for (Integer key : fullDimCellSlideOutCnt.keySet()) {
             fullDimCellWindowCnt.put(key, fullDimCellWindowCnt.get(key) - fullDimCellSlideOutCnt.get(key));
-            //¸üÐÂÖ¸ÎÆ
+            //ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½
             if (!device.fullCellDelta.containsKey(idxDecoder.get(key))) {
                 device.fullCellDelta.put(idxDecoder.get(key), 0);
             }
@@ -315,7 +315,7 @@ public class NewNETS extends Detector {
     }
 
     public void processOutliers() {
-        //Ê×ÏÈ¼ì²éoutliersÖÐÊÇ·ñÓÐÊôÓÚ°²È«cellµÄµã
+        //ï¿½ï¿½ï¿½È¼ï¿½ï¿½outliersï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú°ï¿½È«cellï¿½Äµï¿½
         Iterator<Tuple> it = outliers.iterator();
         OutlierLoop:
         while (it.hasNext()) {
@@ -327,17 +327,17 @@ public class NewNETS extends Detector {
 
             HashMap<Integer, HashMap<ArrayList<?>, List<Vector>>> candNeighborByTime = new HashMap<>();
             if (status.get(outlier.fullDimCellIdx) == 1) {
-                //²»È·¶¨µÄµã£º
-                // ´ÓÀëËû3/2RÖÐµÄcellµÄµãÖ®ºÍÊÇ·ñÐ¡ÓÚK£¬Èç¹ûÐ¡ÓÚ£¬Ôò¾ÍÊÇoutlier
-                // Èç¹û´óÓÚK£¬¾Í½øÐÐ¾ßÌåµÄ¾àÀë¼ÆËã£¬²»¸üÐÂnn£¬¸üÐÂunSafeout£¬safeout£¬°Ñµã·ÅÈëunSafeOutNeighbors£¬
+                //ï¿½ï¿½È·ï¿½ï¿½ï¿½Äµã£º
+                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½3/2Rï¿½Ðµï¿½cellï¿½Äµï¿½Ö®ï¿½ï¿½ï¿½Ç·ï¿½Ð¡ï¿½ï¿½Kï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½Ú£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½outlier
+                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Kï¿½ï¿½ï¿½Í½ï¿½ï¿½Ð¾ï¿½ï¿½ï¿½Ä¾ï¿½ï¿½ï¿½ï¿½ï¿½ã£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½nnï¿½ï¿½ï¿½ï¿½ï¿½ï¿½unSafeoutï¿½ï¿½safeoutï¿½ï¿½ï¿½Ñµï¿½ï¿½ï¿½ï¿½unSafeOutNeighborsï¿½ï¿½
                 // last_calculated_time
                 int sumOfNeighbor = 0;
                 int sumOfNN = 0;
                 //public Map<Integer, Map<ArrayList<?>, List<Vector>>> externalData;
-                for (int time : this.externalData.keySet()) {//Ã¿¸öÊ±¼äµãµÄcells
+                for (int time : this.externalData.keySet()) {//Ã¿ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½cells
                     HashMap<ArrayList<?>, List<Vector>> candNeighbor = new HashMap<>();
-                    Map<ArrayList<?>, List<Vector>> x = this.externalData.get(time);
-                    for (ArrayList<?> cellId : x.keySet()) {
+                    Map<List<Double>, List<Vector>> x = this.externalData.get(time);
+                    for (List<Double> cellId : x.keySet()) {
                         double[] cellCenter = new double[Constants.dim];
                         for (int j = 0; j < Constants.dim; j++) {
                             cellCenter[j] = minValues[j] + (short) cellId.get(j) * dimLength[j] + dimLength[j] / 2;
@@ -360,7 +360,7 @@ public class NewNETS extends Detector {
                     continue OutlierLoop;
                 }
 
-                //½øÐÐ¾ßÌåµÄ¾àÀë¼ÆËã
+                //ï¿½ï¿½ï¿½Ð¾ï¿½ï¿½ï¿½Ä¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                 int need = Constants.K - outlier.getNN() - sumOfNN;
                 if (outlier.last_calculate_time == -1 || outlier.last_calculate_time <= Constants.currentSlideID - Constants.nS) {
                     outlier.last_calculate_time = Constants.currentSlideID - Constants.nS + 1;
@@ -396,18 +396,18 @@ public class NewNETS extends Detector {
 
     public void removeExpiredExternalData() {
         //public Map<Integer, Map<ArrayList<?>, List<Vector>>> externalData;
-        //ÒÆ³ý¹ýÆÚÊ±¼ä´«ËÍ¹ýÀ´µÄÊý¾Ý
+        //ï¿½Æ³ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ä´«ï¿½Í¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         externalData.remove(Constants.currentSlideID - Constants.nS);
 
         Iterator<Integer> it_time = externalData.keySet().iterator();
         while (it_time.hasNext()) {
-            //Ã¿¸öÊ±¼äµã
+            //Ã¿ï¿½ï¿½Ê±ï¿½ï¿½ï¿½
             Integer time = it_time.next();
-            Map<ArrayList<?>, List<Vector>> clusters = externalData.get(time);
-            Iterator<ArrayList<?>> it_cluster = clusters.keySet().iterator();
+            Map<List<Double>, List<Vector>> clusters = externalData.get(time);
+            Iterator<List<Double>> it_cluster = clusters.keySet().iterator();
             while (it_cluster.hasNext()) {
-                //Ã¿¸öcluster
-                ArrayList<?> key = it_cluster.next();
+                //Ã¿ï¿½ï¿½cluster
+                List<Double> key = it_cluster.next();
                 clusters.get(key).removeIf(v -> v.slideID <= Constants.currentSlideID - Constants.nS);
                 if (clusters.get(key).size() == 0) {
                     it_cluster.remove();
@@ -420,12 +420,12 @@ public class NewNETS extends Detector {
     }
 
     @Override
-    //TODO: ÐèÒª¼ì²éÕýÈ·ÐÔ ÓÈÆäÊÇtransferFullIdToSubId·½·¨
-    public Map<ArrayList<?>, List<Vector>> sendData(HashSet<ArrayList<?>> bucketIds, int lastSent) {
-        Map<ArrayList<?>, List<Vector>> data = new HashMap<>();
+    //TODO: ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½È·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½transferFullIdToSubIdï¿½ï¿½ï¿½ï¿½
+    public Map<List<Double>, List<Vector>> sendData(Set<List<Double>> bucketIds, int lastSent) {
+        Map<List<Double>, List<Vector>> data = new HashMap<>();
         for (int time = lastSent + 1; time <= Constants.currentSlideID; time++) {
             int index = time - Constants.currentSlideID + Constants.nS - 1;
-            for (ArrayList<?> id : bucketIds) {
+            for (List<Double> id : bucketIds) {
                 int n = idxEncoder.get(transferFullIdToSubId((ArrayList<Short>) id));
                 Cell fullCell = slides.get(index).get(n).fullCells.get(((ArrayList<Short>) id));
                 ArrayList<Vector> tuples = new ArrayList<>(fullCell.tuples);
@@ -515,7 +515,7 @@ public class NewNETS extends Detector {
             this.findOutlierNETS(itr);
     }
 
-    //TODO: ±©Á¦Ëã³öµÄoutliers£¬ ÓÃÀ´¼ì²éÕýÈ·ÐÔ
+    //TODO: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½outliersï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È·ï¿½ï¿½
     public void findOutlierNaive() {
         HashSet<Tuple> allTuples = new HashSet<Tuple>();
         for (HashMap<Integer, Cell> slide : slides) {
@@ -581,10 +581,10 @@ public class NewNETS extends Detector {
             //for each non-determined tuple, we check its neighbors
             TupleLoop:
             for (Tuple tCand : candOutlierTuples) {
-                Iterator<HashMap<Integer, Cell>> slideIterator = slides.descendingIterator();//´Ó×îÐÂµÄslide¿ªÊ¼
+                Iterator<HashMap<Integer, Cell>> slideIterator = slides.descendingIterator();//ï¿½ï¿½ï¿½ï¿½ï¿½Âµï¿½slideï¿½ï¿½Ê¼
                 int currentSlideID = itr + 1;
 
-                //´ÓÐÂµ½¾Éslide,ÕÒÁÚ¾Ó
+                //ï¿½ï¿½ï¿½Âµï¿½ï¿½ï¿½slide,ï¿½ï¿½ï¿½Ú¾ï¿½
                 SlideLoop:
                 while (slideIterator.hasNext()) {
                     HashMap<Integer, Cell> currentSlide = slideIterator.next();
@@ -595,12 +595,12 @@ public class NewNETS extends Detector {
                         tCand.unSafeOutNeighbors.put(currentSlideID, 0);
                     }
 
-                    //Ã¿¸öslideÀï£¬°´ÕÕcellÕÒÁÚ¾Ó£¬°Ñ¿ÉÄÜµÄÁÚ¾Ó¼ÓÈëotherTuplesºóÐøÅÐ¶Ï
+                    //Ã¿ï¿½ï¿½slideï¿½ï£¬ï¿½ï¿½ï¿½ï¿½cellï¿½ï¿½ï¿½Ú¾Ó£ï¿½ï¿½Ñ¿ï¿½ï¿½Üµï¿½ï¿½Ú¾Ó¼ï¿½ï¿½ï¿½otherTuplesï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½
                     CellLoop:
                     for (Integer otherCellIdx : candCellIndices) {
                         if (!currentSlide.containsKey(otherCellIdx)
                                 || !neighboringTupleSet(tCand.value, currentSlide.get(otherCellIdx).cellCenter, 1.5 * Constants.R))
-                            //Èç¹ûcurrentSlideÖÐÃ»ÓÐotherCellIdx£¬»òÕßtCandºÍotherCellIdx²»ÏàÁÚ£¬ÔòÌø¹ý
+                            //ï¿½ï¿½ï¿½currentSlideï¿½ï¿½Ã»ï¿½ï¿½otherCellIdxï¿½ï¿½ï¿½ï¿½ï¿½ï¿½tCandï¿½ï¿½otherCellIdxï¿½ï¿½ï¿½ï¿½ï¿½Ú£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                             continue CellLoop;
 
                         HashSet<Tuple> otherTuples = new HashSet<Tuple>();
@@ -608,7 +608,7 @@ public class NewNETS extends Detector {
                             //reduce search space using sub-dims
                             for (Cell allIdxCell : currentSlide.get(otherCellIdx).fullCells.values()) {
                                 if (!allIdxCell.cellIdx.equals(tCand.fullDimCellIdx)
-                                        && neighboringTupleSet(tCand.value, allIdxCell.cellCenter, 1.5 * Constants.R))//TODO: CHECK Ò»ÏÂÄÜ²»ÄÜÕâÑù¸Ä
+                                        && neighboringTupleSet(tCand.value, allIdxCell.cellCenter, 1.5 * Constants.R))//TODO: CHECK Ò»ï¿½ï¿½ï¿½Ü²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                                     otherTuples.addAll(allIdxCell.tuples);
                             }
                         } else {
@@ -624,20 +624,20 @@ public class NewNETS extends Detector {
                                     tCand.unSafeOutNeighbors.put(currentSlideID, tCand.unSafeOutNeighbors.get(currentSlideID) + 1);
                                 }
                                 if (tCand.nnSafeOut >= Constants.K) {
-                                    //Í¬Ò»¸öcellµÄneighborÃ»ÓÐÊ±¼äÐÅÏ¢µÄ
+                                    //Í¬Ò»ï¿½ï¿½cellï¿½ï¿½neighborÃ»ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½
                                     if (outliers.contains(tCand)) outliers.remove(tCand);
                                     tCand.safeness = true;
                                     continue TupleLoop;
                                 }
                             }
                         }
-                        //±ØÐëÕÒÍêÕâ¸öslideÀïµÄËùÓÐcell
+                        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½slideï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½cell
                     }
                     if (tCand.getNN() >= Constants.K) {
                         if (outliers.contains(tCand)) outliers.remove(tCand);
                         continue TupleLoop;
-                    } //Õâ¸öslideÕÒÍêÁË
-                } //ËùÓÐslideÕÒÍêÁË
+                    } //ï¿½ï¿½ï¿½slideï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+                } //ï¿½ï¿½ï¿½ï¿½slideï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                 outliers.add(tCand);
             }
         }

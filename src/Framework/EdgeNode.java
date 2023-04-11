@@ -9,8 +9,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class EdgeNode extends RPCFrame implements Runnable {
     public ArrayList<Integer> edgeDevices;
-    public Map<ArrayList<?>, List<UnitInNode>> unitResultInfo; //primly used for pruning
-    public Map<ArrayList<?>, UnitInNode> unitsStatusMap; // used to maintain the status of the unit in a node
+    public Map<List<Double>, List<UnitInNode>> unitResultInfo; //primly used for pruning
+    public Map<List<Double>, UnitInNode> unitsStatusMap; // used to maintain the status of the unit in a node
     public Handler handler;
 
     public EdgeNode() {
@@ -29,9 +29,9 @@ public class EdgeNode extends RPCFrame implements Runnable {
     public AtomicInteger count;
     volatile Boolean flag = false;
 
-    public void receiveAndProcessFP(HashMap<ArrayList<?>, Integer> fingerprints, Integer edgeDeviceHashCode) throws Throwable {
+    public void receiveAndProcessFP(Map<List<Double>, Integer> fingerprints, int edgeDeviceHashCode) throws Throwable {
         this.flag = false;
-        for (ArrayList<?> id : fingerprints.keySet()) {
+        for (List<Double> id : fingerprints.keySet()) {
             if (fingerprints.get(id) == Integer.MIN_VALUE) {
                 unitsStatusMap.get(id).belongedDevices.remove(edgeDeviceHashCode);
                 if (unitsStatusMap.get(id).belongedDevices.isEmpty()) {
@@ -56,11 +56,11 @@ public class EdgeNode extends RPCFrame implements Runnable {
                 unitInNode.updateSafeness();
             }
             // 计算出unSafeUnits，对于这些unSafeUnits, 我们需要从别的设备中寻找邻居
-            List<ArrayList<?>> unSafeUnits =
+            List<List<Double>> unSafeUnits =
                     unitsStatusMap.keySet().stream().filter(key -> unitsStatusMap.get(key).isSafe != 2).toList();
 
             // 第一阶段: 从属于同一个node下的其他device里找邻居, 会包括本身
-            for (ArrayList<?> unsafeUnit : unSafeUnits) {
+            for (List<Double> unsafeUnit : unSafeUnits) {
                 List<UnitInNode> unitInNodeList = unitsStatusMap.values().stream().filter(x -> x.isUpdated.get(this.hashCode()) == 1)
                         .filter(x -> this.handler.neighboringSet(unsafeUnit, x.unitID)).toList();
                 unitInNodeList.forEach(x -> x.isUpdated.put(this.hashCode(), 0));
@@ -90,7 +90,7 @@ public class EdgeNode extends RPCFrame implements Runnable {
                     continue;
                 while (!node.flag) {
                 }
-                List<ArrayList<?>> finalUnSafeUnits = unSafeUnits;
+                List<List<Double>> finalUnSafeUnits = unSafeUnits;
                 Thread t = new Thread(() -> {
                     try {
                         Object[] parameters = new Object[]{finalUnSafeUnits, this.hashCode()};
@@ -116,7 +116,7 @@ public class EdgeNode extends RPCFrame implements Runnable {
 
     public void pruning(int stage) {
         //update UnitInNode update
-        for (ArrayList<?> UnitID : unitResultInfo.keySet()) {
+        for (List<Double> UnitID : unitResultInfo.keySet()) {
             //add up all point count
             List<UnitInNode> list = unitResultInfo.get(UnitID);
             //同一个cell的点数大于k，那么这个cell就是safe的
@@ -139,10 +139,10 @@ public class EdgeNode extends RPCFrame implements Runnable {
      * @param edgeNodeHash: from which node
      * @description find whether there are neighbor unit in local node
      */
-    public void provideNeighborsResult(List<ArrayList<Short>> unSateUnits, int edgeNodeHash) {
+    public void provideNeighborsResult(List<List<Double>> unSateUnits, int edgeNodeHash) {
         ArrayList<Thread> threads = new ArrayList<>();
         //对于每个unsafeUnit,计算完后马上发还消息，以达到pipeline的目标
-        for (ArrayList<?> unit : unSateUnits) {
+        for (List<Double> unit : unSateUnits) {
             Thread t = new Thread(() -> {
                 List<UnitInNode> unitInNodeList = unitsStatusMap.values().stream()
                         .filter(x -> x.isUpdated.get(edgeNodeHash) == 1)
@@ -168,7 +168,7 @@ public class EdgeNode extends RPCFrame implements Runnable {
         }
     }
 
-    public void processResult(ArrayList<?> unitID, List<UnitInNode> unitInNodeList) {
+    public void processResult(List<Double> unitID, List<UnitInNode> unitInNodeList) {
         if (!unitResultInfo.containsKey(unitID)) {
             unitResultInfo.put(unitID, unitInNodeList); // rpc streaming过来的是一个新的list，所以不用担心深浅拷贝的问题
             return;
@@ -196,7 +196,7 @@ public class EdgeNode extends RPCFrame implements Runnable {
                 // 1 安全状态
                 List<UnitInNode> list = unitsStatusMap.values().stream().filter(
                         x -> x.belongedDevices.contains(edgeDeviceCode)).toList(); // 这个device当前有的所有unit
-                HashMap<ArrayList<?>, Integer> status = new HashMap<>();
+                HashMap<List<Double>, Integer> status = new HashMap<>();
                 for (UnitInNode i : list) {
                     status.put(i.unitID, i.isSafe);
                 }
@@ -205,7 +205,7 @@ public class EdgeNode extends RPCFrame implements Runnable {
                 list = unitsStatusMap.values().stream().filter(
                         x -> (x.belongedDevices.contains(edgeDeviceCode) && (x.isSafe == 1))).toList();
                 //只有不安全的unit才需要向其他device要数据
-                HashMap<Integer, HashSet<ArrayList<?>>> result = new HashMap<>();
+                HashMap<Integer, HashSet<List<Double>>> result = new HashMap<>();
                 //deviceHashCode: unitID
                 for (UnitInNode unitInNode : list) {
                     unitResultInfo.get(unitInNode.unitID).forEach(

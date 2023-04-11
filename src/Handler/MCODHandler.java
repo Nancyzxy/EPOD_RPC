@@ -2,6 +2,8 @@ package Handler;
 
 import Framework.EdgeNode;
 import java.util.ArrayList;
+import java.util.List;
+
 import utils.Constants;
 
 public class MCODHandler extends Handler {
@@ -10,7 +12,7 @@ public class MCODHandler extends Handler {
     }
 
     @Override
-    public boolean neighboringSet(ArrayList<?> c1, ArrayList<?> c2) {
+    public boolean neighboringSet(List<Double> c1, List<Double> c2) {
     // 1.±©¡¶º∆À„
         double sum = 0;
         for (int i = 0; i < c1.size(); i++) {

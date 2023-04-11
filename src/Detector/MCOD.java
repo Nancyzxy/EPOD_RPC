@@ -10,7 +10,7 @@ import mtree.utils.MTreeClass;
 import utils.Constants;
 
 public class MCOD extends Detector {
-    public static HashMap<ArrayList<?>, MCO> map_to_MCO;
+    public static HashMap<List<Double>, MCO> map_to_MCO;
     public static Map<Integer, ArrayList<MCO>> internal_dataList; // {slideId, MCO}
     //--------------------------------------------------------------------------------
     public static HashMap<MCO, ArrayList<MCO>> filled_clusters; // {d.center, cluster}
@@ -20,7 +20,7 @@ public class MCOD extends Detector {
     public static HashSet<MCO> outliers;
     public static PriorityQueue<MCO> eventQueue;
 
-    public static HashMap<ArrayList<?>, Integer> external_info;
+    public static HashMap<List<Double>, Integer> external_info;
 
     public MCOD(Device device) {
         super(device);
@@ -84,7 +84,7 @@ public class MCOD extends Detector {
         }
         unfilled_clusters.put(d.center, cluster);
 
-        ArrayList<?> key = transferToArrayList(d.center.values);
+        List<Double> key = d.center.values;
         update_fingerprint(key, false);
     }
 
@@ -92,7 +92,7 @@ public class MCOD extends Detector {
         ArrayList<MCO> cluster = unfilled_clusters.get(d.center);
         if (cluster != null) {
             cluster.remove(d);
-            ArrayList<?> key = transferToArrayList(d.center.values);
+            List<Double> key = d.center.values;
             if (cluster.size() == 0) {
                 unfilled_clusters.remove(d.center);
                 this.device.fullCellDelta.put(key, Integer.MIN_VALUE); //不管有没有这个key，都可以实现覆盖效果
@@ -204,7 +204,7 @@ public class MCOD extends Detector {
         unfilled_clusters.put(nearest_center, cluster);
 
         //update fullCellDelta
-        ArrayList<?> key = transferToArrayList(d.center.values);
+        List<Double> key = d.center.values;
         update_fingerprint(key, true);
 
         //这两步顺序不能换，因为是在update_info_filled里checkInlier(d)
@@ -220,13 +220,13 @@ public class MCOD extends Detector {
         d.isCenter = true;
         d.isInFilledCluster = false;
         d.center = d;
-        map_to_MCO.put(transferToArrayList(d.values), d);
+        map_to_MCO.put(d.values, d);
 
         ArrayList<MCO> cluster = new ArrayList<>();
         cluster.add(d);
         unfilled_clusters.put(d, cluster);
 
-        this.device.fullCellDelta.put(transferToArrayList(d.center.values), 1);
+        this.device.fullCellDelta.put(d.center.values, 1);
 
         update_info_unfilled(d, false);
         update_info_filled(d);
@@ -282,7 +282,7 @@ public class MCOD extends Detector {
         filled_clusters.put(nearest_center, cluster);
 
         // update fingerprint
-        ArrayList<?> key = transferToArrayList(d.center.values);
+        List<Double> key = d.center.values;
         update_fingerprint(key, true);
 
         //update for points in PD that has Rmc list contains center
@@ -421,11 +421,11 @@ public class MCOD extends Detector {
         while (it_time.hasNext()){
             //每个时间点
             Integer time = it_time.next();
-            Map<ArrayList<?>, List<Vector>> clusters = externalData.get(time);
-            Iterator<ArrayList<?>> it_cluster = clusters.keySet().iterator();
+            Map<List<Double>, List<Vector>> clusters = externalData.get(time);
+            Iterator<List<Double>> it_cluster = clusters.keySet().iterator();
             while (it_cluster.hasNext()) {
                 //每个cluster
-                ArrayList<?> key = it_cluster.next();
+                List<Double> key = it_cluster.next();
                 Iterator<Vector> it_vector = clusters.get(key).iterator();//实例化迭代器
                 while (it_vector.hasNext()) {
                     //每个vector
@@ -453,8 +453,8 @@ public class MCOD extends Detector {
     //更新external_info至最新状态
     public void update_external_info() {
         // Map<Integer, Map<ArrayList<?>, List<Vector>>> externalData;
-        Map<ArrayList<?>, List<Vector>> current_arrive_data = externalData.get(Constants.currentSlideID);
-        for (ArrayList<?> key : current_arrive_data.keySet()) {
+        Map<List<Double>, List<Vector>> current_arrive_data = externalData.get(Constants.currentSlideID);
+        for (List<Double> key : current_arrive_data.keySet()) {
             if (!external_info.containsKey(key)) {
                 external_info.put(key, 0);
             }
@@ -469,7 +469,7 @@ public class MCOD extends Detector {
         while (iterator.hasNext()) {
             MCO o = iterator.next();//读取当前集合数据元素
             // HashMap<ArrayList<?>, Integer> status;
-            int reply = this.status.get(transferToArrayList(o.center.values));
+            int reply = this.status.get(o.center.values);
             //首先我们需要pruning掉被判断为安全的以及被判断成outlier的点，加入event queue，event time 设为下一个时间点
             if (reply == 2) {
                 iterator.remove();
@@ -484,9 +484,9 @@ public class MCOD extends Detector {
             // 如果大于K，就进行具体的距离计算，更新pre，succeeding,last_calculated_time
             else if (reply == 1) {
                 int sumOfNeighbor = 0;
-                ArrayList<ArrayList<?>> cluster3R_2 = new ArrayList<>();
-                for (Map.Entry<ArrayList<?>, Integer> entry : external_info.entrySet()) {
-                    ArrayList<?> key = entry.getKey();
+                ArrayList<List<Double>> cluster3R_2 = new ArrayList<>();
+                for (Map.Entry<List<Double>, Integer> entry : external_info.entrySet()) {
+                    List<Double> key = entry.getKey();
                     Integer value = entry.getValue();
                     double distance = distance(key, o.center.values);
                     if (distance <= Constants.R / 2) {
@@ -503,7 +503,7 @@ public class MCOD extends Detector {
                     }
                 }
 
-                for (ArrayList<?> c : cluster3R_2) {
+                for (List<Double> c : cluster3R_2) {
                     sumOfNeighbor += external_info.get(c);
                 }
                 //在所有3R/2内cluster（外部）的点，若和本地相加小于k，则判断成为Outlier,不做任何操作
@@ -513,10 +513,10 @@ public class MCOD extends Detector {
                         o.last_calculate_time = Constants.currentSlideID - Constants.nS + 1;
                     }
                     while (o.last_calculate_time <= Constants.currentSlideID) {
-                        Map<ArrayList<?>, List<Vector>> cur_data = externalData.get(o.last_calculate_time);
+                        Map<List<Double>, List<Vector>> cur_data = externalData.get(o.last_calculate_time);
                         if (cur_data != null) {
                             // 对每一个3R/2内的邻居
-                            for (ArrayList<?> c : cluster3R_2) {
+                            for (List<Double> c : cluster3R_2) {
                                 // 在当前的时间点看是否有此cluster
                                 List<Vector> cur_cluster_data = cur_data.get(c);
                                 // 如果有
@@ -545,12 +545,12 @@ public class MCOD extends Detector {
 
 
     @Override
-    public Map<ArrayList<?>, List<Vector>> sendData(HashSet<ArrayList<?>> bucketIds, int lastSent) {
-        Map<ArrayList<?>, List<Vector>> result = new HashMap<>();
+    public Map<List<Double>, List<Vector>> sendData(Set<List<Double>> bucketIds, int lastSent) {
+        Map<List<Double>, List<Vector>> result = new HashMap<>();
 
         for (int time = lastSent + 1; time <= Constants.currentSlideID; time++) {
             for (MCO dataPoints : internal_dataList.get(time)) {
-                ArrayList<?> d_center = transferToArrayList(dataPoints.center.values);
+                List<Double> d_center = dataPoints.center.values;
                 if (bucketIds.contains(d_center)) {
                     if (result.containsKey(d_center))
                         result.get(d_center).add(dataPoints);
@@ -565,10 +565,10 @@ public class MCOD extends Detector {
         return result;
     }
 
-    public double distance(ArrayList<?> a, double[] b) {
+    public double distance(List<Double> a, List<Double> b) {
         double sum = 0;
         for (int i = 0; i < a.size(); i++) {
-            sum += Math.pow((double) a.get(i) - b[i], 2);
+            sum += Math.pow(a.get(i) - b.get(i), 2);
         }
         return Math.sqrt(sum);
     }
@@ -599,15 +599,15 @@ public class MCOD extends Detector {
         return Integer.compare(o1.slideID, o2.slideID);
     }
 
-    public ArrayList<?> transferToArrayList(double[] a) {
-        ArrayList<Double> result = new ArrayList<>();
-        for (double d : a) {
-            result.add(d);
-        }
-        return result;
-    }
+//    public ArrayList<?> transferToArrayList(double[] a) {
+//        ArrayList<Double> result = new ArrayList<>();
+//        for (double d : a) {
+//            result.add(d);
+//        }
+//        return result;
+//    }
 
-    public void update_fingerprint(ArrayList<?> key, boolean isAdd) {
+    public void update_fingerprint(List<Double> key, boolean isAdd) {
         if (!this.device.fullCellDelta.containsKey(key)) {
             this.device.fullCellDelta.put(key, 0);
         }

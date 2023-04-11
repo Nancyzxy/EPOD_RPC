@@ -3,6 +3,7 @@ package Handler;
 import Framework.EdgeNode;
 import utils.Constants;
 import java.util.ArrayList;
+import java.util.List;
 
 public class NETSHandler extends Handler{
 
@@ -10,7 +11,8 @@ public class NETSHandler extends Handler{
         super(node);
     }
 
-    public boolean neighboringSet(ArrayList<?> c1, ArrayList<?> c2) {
+    @Override
+    public boolean neighboringSet(List<Double> c1, List<Double> c2) {
         double ss = 0;
         double neighCellIdxDist = Math.sqrt(Constants.subDim)*2;
         double neighCellFullDimIdxDist = Math.sqrt(Constants.dim)*2;

@@ -15,7 +15,7 @@ public class Device extends RPCFrame implements Runnable {
     public int deviceId;
     volatile public boolean ready = false;
     public List<Vector> rawData = new ArrayList<>();
-    public HashMap<ArrayList<?>, Integer> fullCellDelta; //fingerprint
+    public HashMap<List<Double>, Integer> fullCellDelta; //fingerprint
     public DataGenerator dataGenerator;
     public EdgeNode nearestNode;
     public Detector detector;
@@ -65,7 +65,7 @@ public class Device extends RPCFrame implements Runnable {
     }
 
 
-    public void uploadFP(HashMap<ArrayList<?>, Integer> aggFingerprints) throws Throwable {
+    public void uploadFP(HashMap<List<Double>, Integer> aggFingerprints) throws Throwable {
         Object[] parameters = new Object[]{aggFingerprints, this.hashCode()};
         invoke("localhost", this.nearestNode.port,
                 EdgeNode.class.getMethod("receiveAndProcessFP", HashMap.class, Integer.class), parameters);
@@ -75,14 +75,14 @@ public class Device extends RPCFrame implements Runnable {
         this.fullCellDelta = new HashMap<>();
     }
 
-    public Map<ArrayList<?>, List<Vector>> sendData(HashSet<ArrayList<?>> bucketIds, int deviceHashCode) {
+    public Map<List<Double>, List<Vector>> sendData(Set<List<Double>> bucketIds, int deviceHashCode) {
         //根据历史记录来发送数据
         int lastSent = Math.max(this.historyRecord.get(deviceHashCode), Constants.currentSlideID - Constants.nS);
         this.historyRecord.put(deviceHashCode, Constants.currentSlideID);
         return this.detector.sendData(bucketIds, lastSent);
     }
 
-    public void getExternalData(HashMap<ArrayList<?>, Integer> status, HashMap<Integer, HashSet<ArrayList<?>>> result) throws InterruptedException {
+    public void getExternalData(Map<List<Double>, Integer> status, Map<Integer, Set<List<Double>>> result) throws InterruptedException {
         this.detector.status = status; //用来判断outliers是否需要重新计算，用在processOutliers()中
         ArrayList<Thread> threads = new ArrayList<>();
         for (Integer deviceCode : result.keySet()) {
@@ -90,13 +90,13 @@ public class Device extends RPCFrame implements Runnable {
             Thread t = new Thread(() -> {
                 Object[] parameters = new Object[]{result.get(deviceCode)};
                 try {
-                    Map<ArrayList<?>, List<Vector>> data = (Map<ArrayList<?>, List<Vector>>)
+                    Map<List<Double>, List<Vector>> data = (Map<List<Double>, List<Vector>>)
                             invoke("localhost", EdgeNodeNetwork.deviceHashMap.get(deviceCode).port,
                                     Device.class.getMethod("sendData", HashSet.class, int.class), parameters);
                     if (!this.detector.externalData.containsKey(Constants.currentSlideID)) {
                         this.detector.externalData.put(Constants.currentSlideID, Collections.synchronizedMap(new HashMap<>()));
                     }
-                    Map<ArrayList<?>, List<Vector>> map = this.detector.externalData.get(Constants.currentSlideID);//TODO: Check 并发的问题
+                    Map<List<Double>, List<Vector>> map = this.detector.externalData.get(Constants.currentSlideID);//TODO: Check 并发的问题
                     data.keySet().forEach(
                             x -> {
                                 if (!map.containsKey(x)) {
