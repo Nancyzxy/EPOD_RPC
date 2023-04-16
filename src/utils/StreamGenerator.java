@@ -140,10 +140,10 @@ public class StreamGenerator {
 			currentRealTime.setTime(currentRealTime.getTime() + (long) Constants.S * 10 * 1000 * itr);
 			ArrayList<Vector>tmp = dataGenerator.getTimeBasedIncomingData(currentRealTime, Constants.S*10);
 			for (Vector v:tmp){
-				double[] value = new double[v.values.length];
+				double[] value = new double[v.values.size()];
 				int j = 0;
 				for (int i : priorityList) {
-					value[j] = v.values[i];
+					value[j] = v.values.get(i);
 					j++;
 				}
 				Tuple tuple = new Tuple(tid++, itr, value);

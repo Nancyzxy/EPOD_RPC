@@ -292,24 +292,28 @@ public class NewNETS extends Detector {
             }
             fullDimCellWindowCnt.put(key, fullDimCellWindowCnt.get(key) + fullDimCellSlideInCnt.get(key));
             //����ָ��
-            if (!device.fullCellDelta.containsKey(idxDecoder.get(key))) {
-                device.fullCellDelta.put(idxDecoder.get(key), 0);
+            ArrayList<Double> fingerprint = new ArrayList<>();
+            idxDecoder.get(key).forEach(idx -> fingerprint.add((double)idx));
+            if (!device.fullCellDelta.containsKey(fingerprint)) {
+                device.fullCellDelta.put(fingerprint, 0);
             }
-            device.fullCellDelta.put(idxDecoder.get(key),
+            device.fullCellDelta.put(fingerprint,
                     device.fullCellDelta.get(idxDecoder.get(key)) + fullDimCellSlideInCnt.get(key));
         }
 
         for (Integer key : fullDimCellSlideOutCnt.keySet()) {
             fullDimCellWindowCnt.put(key, fullDimCellWindowCnt.get(key) - fullDimCellSlideOutCnt.get(key));
             //����ָ��
-            if (!device.fullCellDelta.containsKey(idxDecoder.get(key))) {
-                device.fullCellDelta.put(idxDecoder.get(key), 0);
+            ArrayList<Double> fingerprint = new ArrayList<>();
+            idxDecoder.get(key).forEach(idx -> fingerprint.add((double)idx));
+            if (!device.fullCellDelta.containsKey(fingerprint)) {
+                device.fullCellDelta.put(fingerprint, 0);
             }
-            device.fullCellDelta.put(idxDecoder.get(key),
+            device.fullCellDelta.put(fingerprint,
                     device.fullCellDelta.get(idxDecoder.get(key)) - fullDimCellSlideInCnt.get(key));
             if (fullDimCellWindowCnt.get(key) < 1) {
                 fullDimCellWindowCnt.remove(key);
-                device.fullCellDelta.put(idxDecoder.get(key), Integer.MIN_VALUE);
+                device.fullCellDelta.put(fingerprint, Integer.MIN_VALUE);
             }
         }
     }
@@ -325,7 +329,7 @@ public class NewNETS extends Detector {
                 continue OutlierLoop;
             }
 
-            HashMap<Integer, HashMap<ArrayList<?>, List<Vector>>> candNeighborByTime = new HashMap<>();
+            HashMap<Integer, HashMap<List<Double>, List<Vector>>> candNeighborByTime = new HashMap<>();
             if (status.get(outlier.fullDimCellIdx) == 1) {
                 //��ȷ���ĵ㣺
                 // ������3/2R�е�cell�ĵ�֮���Ƿ�С��K�����С�ڣ������outlier
@@ -335,15 +339,16 @@ public class NewNETS extends Detector {
                 int sumOfNN = 0;
                 //public Map<Integer, Map<ArrayList<?>, List<Vector>>> externalData;
                 for (int time : this.externalData.keySet()) {//ÿ��ʱ����cells
-                    HashMap<ArrayList<?>, List<Vector>> candNeighbor = new HashMap<>();
+                    HashMap<List<Double>, List<Vector>> candNeighbor = new HashMap<>();
                     Map<List<Double>, List<Vector>> x = this.externalData.get(time);
                     for (List<Double> cellId : x.keySet()) {
                         double[] cellCenter = new double[Constants.dim];
                         for (int j = 0; j < Constants.dim; j++) {
-                            cellCenter[j] = minValues[j] + (short) cellId.get(j) * dimLength[j] + dimLength[j] / 2;
+                            cellCenter[j] = minValues[j] + cellId.get(j) * dimLength[j] + dimLength[j] / 2;
                         }
                         if (neighboringTupleSet(outlier.value, cellCenter, 1.5 * Constants.R)) {
-                            if (outlier.fullDimCellIdx == cellId) {
+
+                            if (listComparison(outlier.fullDimCellIdx, cellId)) {
                                 sumOfNN += x.get(cellId).size();
                             } else {
                                 if (!candNeighbor.containsKey(cellId)) {
@@ -366,8 +371,8 @@ public class NewNETS extends Detector {
                     outlier.last_calculate_time = Constants.currentSlideID - Constants.nS + 1;
                 }
                 while (outlier.last_calculate_time <= Constants.currentSlideID) {
-                    HashMap<ArrayList<?>, List<Vector>> candiNeighbors = candNeighborByTime.get(outlier.last_calculate_time);
-                    for (ArrayList<?> cellId : candiNeighbors.keySet()) {
+                    HashMap<List<Double>, List<Vector>> candiNeighbors = candNeighborByTime.get(outlier.last_calculate_time);
+                    for (List<Double> cellId : candiNeighbors.keySet()) {
                         List<Vector> cluster = candiNeighbors.get(cellId);
                         for (Vector v : cluster) {
                             if (neighboringTupleSet(v.values, outlier.value, Constants.R)) {
@@ -426,8 +431,8 @@ public class NewNETS extends Detector {
         for (int time = lastSent + 1; time <= Constants.currentSlideID; time++) {
             int index = time - Constants.currentSlideID + Constants.nS - 1;
             for (List<Double> id : bucketIds) {
-                int n = idxEncoder.get(transferFullIdToSubId((ArrayList<Short>) id));
-                Cell fullCell = slides.get(index).get(n).fullCells.get(((ArrayList<Short>) id));
+                int n = idxEncoder.get(transferFullIdToSubId(id));
+                Cell fullCell = slides.get(index).get(n).fullCells.get(id);
                 ArrayList<Vector> tuples = new ArrayList<>(fullCell.tuples);
                 if (!data.containsKey(id)) {
                     data.put(id, new ArrayList<>());
@@ -439,7 +444,7 @@ public class NewNETS extends Detector {
     }
 
     //TODO: check correctness
-    public ArrayList<Short> transferFullIdToSubId(ArrayList<Short> fullId) {
+    public ArrayList<Short> transferFullIdToSubId(List<Double> fullId) {
         ArrayList<Short> subId = new ArrayList<Short>();
         for (int i = 0; i < Constants.subDim; i++) {
             Short id = (short) (Math.sqrt(Constants.subDim * 1.0 / Constants.dim) * (fullId.get(i) + minValues[i]) - minValues[i]);
@@ -664,6 +669,17 @@ public class NewNETS extends Detector {
         return true;
     }
 
+    public boolean neighboringTupleSet(List<Double> v1, double[] v2, double threshold) {
+
+        double ss = 0;
+        threshold *= threshold;
+        for (int i = 0; i < v2.length; i++) {
+            ss += Math.pow((v1.get(i) - v2[i]), 2);
+            if (ss > threshold) return false;
+        }
+        return true;
+    }
+
     public double neighboringSetDist(ArrayList<Short> c1, ArrayList<Short> c2) {
         double ss = 0;
         double cellIdxDist = (c1.size() == Constants.dim ? neighCellFullDimIdxDist : neighCellIdxDist);
@@ -685,6 +701,16 @@ public class NewNETS extends Detector {
         for (int k = 0; k < c1.size(); k++) {
             ss += Math.pow((c1.get(k) - c2.get(k)), 2);
             if (ss >= threshold) return false;
+        }
+        return true;
+    }
+
+    public boolean listComparison(List<Short> shortList, List<Double> doubleList){
+        for (int i = 0; i<shortList.size();i++){
+            double tmp = doubleList.get(i);
+            if (shortList.get(i) != (short) tmp ){
+                return false;
+            }
         }
         return true;
     }

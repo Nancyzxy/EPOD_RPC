@@ -2,7 +2,6 @@ package Handler;
 
 import Framework.EdgeNode;
 import utils.Constants;
-import java.util.ArrayList;
 import java.util.List;
 
 public class NETSHandler extends Handler{
@@ -19,12 +18,11 @@ public class NETSHandler extends Handler{
         double cellIdxDist = (c1.size() == Constants.dim? neighCellFullDimIdxDist : neighCellIdxDist);
         double threshold =cellIdxDist*cellIdxDist;
         for(int k = 0; k<c1.size(); k++) {
-            short x1 = (short) c1.get(k);
-            short x2 = (short) c2.get(k);
+            short x1 = (short) (double)c1.get(k);
+            short x2 = (short) (double)c2.get(k);
             ss += Math.pow(x1-x2,2);
             if (ss >= threshold) return false;
         }
         return true;
     }
-
 }

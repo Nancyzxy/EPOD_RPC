@@ -2,6 +2,7 @@ package utils;
 
 import RPC.Vector;
 import java.io.*;
+import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -45,9 +46,9 @@ public class DataGenerator {
                 int id = 0;
                 while (line != null) {
                     String[] atts = line.split(",");
-                    double[] d = new double[atts.length - 1];
+                    ArrayList<Double> d = new ArrayList<>();
                     for (int i = 1; i < atts.length; i++) {
-                        d[i - 1] = Double.parseDouble(atts[i]) + (new Random()).nextDouble() / 10000000;
+                        d.set(i - 1, Double.parseDouble(atts[i]) + (new Random()).nextDouble() / 10000000);
                     }
                     Vector data = new Vector(d);
                     data.arrivalRealTime = formatter.parse(atts[0]);
