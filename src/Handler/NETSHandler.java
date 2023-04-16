@@ -1,12 +1,12 @@
 package Handler;
 
-import Framework.EdgeNode;
+import Framework.EdgeNodeImpl;
 import utils.Constants;
 import java.util.List;
 
 public class NETSHandler extends Handler{
 
-    public NETSHandler(EdgeNode node) {
+    public NETSHandler(EdgeNodeImpl node) {
         super(node);
     }
 

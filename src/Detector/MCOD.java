@@ -4,8 +4,8 @@ import DataStructure.MCO;
 
 import java.util.*;
 
+import Framework.DeviceImpl;
 import RPC.Vector;
-import Framework.Device;
 import mtree.utils.MTreeClass;
 import utils.Constants;
 
@@ -22,8 +22,8 @@ public class MCOD extends Detector {
 
     public static HashMap<List<Double>, Integer> external_info;
 
-    public MCOD(Device device) {
-        super(device);
+    public MCOD(DeviceImpl deviceImpl) {
+        super(deviceImpl);
         map_to_MCO = new HashMap<>();
         internal_dataList = new LinkedHashMap<>();
         filled_clusters = new HashMap<>();
@@ -95,7 +95,7 @@ public class MCOD extends Detector {
             List<Double> key = d.center.values;
             if (cluster.size() == 0) {
                 unfilled_clusters.remove(d.center);
-                this.device.fullCellDelta.put(key, Integer.MIN_VALUE); //不管有没有这个key，都可以实现覆盖效果
+                this.deviceImpl.fullCellDelta.put(key, Integer.MIN_VALUE); //不管有没有这个key，都可以实现覆盖效果
             } else {
                 unfilled_clusters.put(d.center, cluster);
                 update_fingerprint(key, false);
@@ -226,7 +226,7 @@ public class MCOD extends Detector {
         cluster.add(d);
         unfilled_clusters.put(d, cluster);
 
-        this.device.fullCellDelta.put(d.center.values, 1);
+        this.deviceImpl.fullCellDelta.put(d.center.values, 1);
 
         update_info_unfilled(d, false);
         update_info_filled(d);
@@ -608,12 +608,12 @@ public class MCOD extends Detector {
 //    }
 
     public void update_fingerprint(List<Double> key, boolean isAdd) {
-        if (!this.device.fullCellDelta.containsKey(key)) {
-            this.device.fullCellDelta.put(key, 0);
+        if (!this.deviceImpl.fullCellDelta.containsKey(key)) {
+            this.deviceImpl.fullCellDelta.put(key, 0);
         }
-        int origin = this.device.fullCellDelta.get(key);
+        int origin = this.deviceImpl.fullCellDelta.get(key);
         int delta = isAdd ? 1 : -1;
-        this.device.fullCellDelta.put(key, origin + delta);
+        this.deviceImpl.fullCellDelta.put(key, origin + delta);
     }
 
 //    static class MCComparator implements Comparator<MCO> {

@@ -6,12 +6,12 @@
 
 - **Components**: Edge devices and Edge nodes
 - **Workflow**:
-  - Each device collect vector.
-  - Each device generate fingerprints for each vector and find outliers
+  - Each deviceImpl collect vector.
+  - Each deviceImpl generate fingerprints for each vector and find outliers
   - Upload fingerprint to the nearest node.
   - Nodes collect fingerprints from all its devices.
   - Interacts with all nodes on the network and derive the support devices for all its edge devices
-  - Based on the information from edge node, each device ask its dependent devices for necessary vector
+  - Based on the information from edge node, each deviceImpl ask its dependent devices for necessary vector
   - After receiving all vector, run the rest streaming detecting algorithm
 
 ## 2. Datasets
@@ -50,7 +50,7 @@
 
 original datasets: \NETS\Datasets
 
-vector with device ID: \NETS\Datasets\DeviceId _data
+vector with deviceImpl ID: \NETS\Datasets\DeviceId _data
 
 vector with timestamp: \NETS\Datasets\Timestamp_data
 

@@ -14,8 +14,8 @@ CellID:
 
 - Adopt **Hilbert curve** to optimize space index - the grid index 
 - Define an algorithm (Greedy):
-  - Input: support device and the # of points within 1-hop and 2-hop cells
-  - Output: an order of support devices in which the device ask the vector
+  - Input: support deviceImpl and the # of points within 1-hop and 2-hop cells
+  - Output: an order of support devices in which the deviceImpl ask the vector
   
 - With 100% recall
   - Comprehensive experiments on datasets

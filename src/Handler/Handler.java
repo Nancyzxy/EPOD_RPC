@@ -1,12 +1,12 @@
 package Handler;
 
-import Framework.EdgeNode;
-import java.util.ArrayList;
+import Framework.EdgeNodeImpl;
+
 import java.util.List;
 
 public abstract class Handler {
-    EdgeNode node;
-    public Handler(EdgeNode node){
+    EdgeNodeImpl node;
+    public Handler(EdgeNodeImpl node){
         this.node = node;
     }
 

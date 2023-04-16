@@ -1,13 +1,13 @@
 package Handler;
 
-import Framework.EdgeNode;
-import java.util.ArrayList;
+import Framework.EdgeNodeImpl;
+
 import java.util.List;
 
 import utils.Constants;
 
 public class MCODHandler extends Handler {
-    public MCODHandler(EdgeNode node) {
+    public MCODHandler(EdgeNodeImpl node) {
         super(node);
     }
 
